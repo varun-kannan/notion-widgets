@@ -1,0 +1,7 @@
+import { read, save, dialog, field, submit, uid, button, el, confirmDelete, datasetTools, localDay } from './core.js';
+import { validHabits } from './logic.js';
+export function habits() { const v = read('habits', []); return validHabits(v) ? v : []; }
+export function editHabit(item) { dialog(item ? 'Edit habit' : 'Add daily habit', (f, close) => { const name = field('Habit name', item?.name || '', 'text', { required: true, maxlength: 120 }); f.append(name); submit(f, 'Save habit', () => { if (!name.value().trim()) throw Error('Enter a habit name.'); const data = habits(); const record = { id: item?.id || uid(), name: name.value().trim(), days: item?.days || [] }; const index = data.findIndex(v => v.id === record.id); if (index < 0) { if (data.length >= 100) throw Error('Maximum 100 habits.'); data.push(record); } else data[index] = record; save('habits', data); close(); }); }); }
+export function toggleHabit(id, date = localDay()) { const rows = habits(); const h = rows.find(v => v.id === id); if (!h) return; h.days = h.days.includes(date) ? h.days.filter(v => v !== date) : [...h.days, date]; save('habits', rows); }
+export function habitActions(h) { const actions = el('div', undefined, 'actions'); actions.append(button('Rename', () => editHabit(h), 'quiet'), button('Delete', () => confirmDelete(h.name, () => save('habits', habits().filter(v => v.id !== h.id))), 'quiet')); return actions; }
+export function habitBackup(root) { datasetTools(root, 'habits', habits, validHabits, v => save('habits', v)); }

@@ -1,0 +1,1 @@
+.streak-card{background:var(--surface);border-radius:calc(var(--radius)*.65);padding:14px;margin-bottom:12px}.week-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:12px}.week-strip button{min-width:0;padding:5px}.week-strip .checked{background:var(--primary);color:var(--background)}

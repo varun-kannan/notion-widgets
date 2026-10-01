@@ -1,0 +1,20 @@
+import { boot, el, fields, button, empty, localDay } from './core.js';
+import { chart, svg, transactions, slices, money, dataTable, addTransaction, sourceLink } from './viz.js';
+
+let selected = -1;
+const palette = ['var(--primary)', 'var(--accent)', 'var(--gradient)', 'var(--text)', 'var(--muted)', 'var(--border)', 'color-mix(in srgb,var(--primary),var(--accent) 45%)', 'color-mix(in srgb,var(--accent),var(--gradient) 45%)'];
+const share = value => (Math.round(value * 1000) / 10).toFixed(1) + '%';
+function point(cx, cy, r, angle) { const rad = (angle - 90) * Math.PI / 180; return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]; }
+function wedge(cx, cy, radius, inner, start, end) { const span = Math.min(359.999, end - start); const a = point(cx, cy, radius, start), b = point(cx, cy, radius, start + span), large = Number(span > 180); if (!inner) return `M${cx},${cy} L${a} A${radius},${radius} 0 ${large} 1 ${b} Z`; const c = point(cx, cy, inner, start + span), d = point(cx, cy, inner, start); return `M${a} A${radius},${radius} 0 ${large} 1 ${b} L${c} A${inner},${inner} 0 ${large} 0 ${d} Z`; }
+boot({ id: 'spending-pie', title: 'Spending by category', symbol: '\u25d5', defaults: { month: localDay().slice(0, 7), maxCategories: 6, shape: 'donut' }, configure: (r, c) => fields(r, c, [['month', 'Month', 'month'], ['maxCategories', 'Top categories', 'number', { min: 2, max: 7 }], ['shape', 'Chart shape', 'select', { options: [['donut', 'Donut'], ['pie', 'Pie']] }]]), render(app) {
+  const r = app.root; r.replaceChildren(); const c = app.config, month = /^\d{4}-(0[1-9]|1[0-2])$/.test(c.month) ? c.month : localDay().slice(0, 7); const groups = slices(transactions(), month, Math.max(2, Math.min(7, c.maxCategories))); const total = groups.reduce((n, item) => n + item.value, 0);
+  r.append(el('p', 'WHERE YOUR MONEY WENT', 'eyebrow')); if (!total) empty(r, 'No spending yet', 'Add an expense for the selected month to see the chart.');
+  else {
+    const panel = el('div', undefined, 'pie-layout'), surface = el('div', undefined, 'pie-figure chart-surface'), view = chart(`Spending by category, ${month}`, 320, 320); let angle = 0; const inner = c.shape === 'pie' ? 0 : 78;
+    groups.forEach((item, i) => { const end = angle + item.value / total * 360, slice = svg('path', { d: wedge(160, 160, 132, inner, angle, end), fill: palette[i % palette.length], class: 'pie-slice' + (selected === i ? ' active' : ''), tabindex: 0, role: 'button', 'aria-label': `${item.label}: ${money(item.value)}, ${share(item.value / total)}` }); slice.append(svg('title', {}, `${item.label}: ${money(item.value)}`)); const choose = () => { selected = i; app.redraw(); }; slice.addEventListener('click', choose); slice.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); } }); view.append(slice); angle = end; });
+    if (inner) { view.append(svg('text', { x: 160, y: 151, 'text-anchor': 'middle', class: 'pie-total-label' }, 'TOTAL SPENT'), svg('text', { x: 160, y: 180, 'text-anchor': 'middle', class: 'pie-total' }, money(total, true))); }
+    surface.append(view); const legend = el('div', undefined, 'chart-legend'); groups.forEach((item, i) => { const b = button('', () => { selected = i; app.redraw(); }, 'legend-button' + (selected === i ? ' active' : '')); const swatch = el('i', '', 'swatch'); swatch.style.background = palette[i % palette.length]; b.append(swatch, el('span', item.label), el('span', `${share(item.value / total)} / ${money(item.value)}`)); legend.append(b); }); panel.append(surface, legend); r.append(panel, dataTable(['Category', 'Amount', 'Share'], groups.map(item => [item.label, money(item.value), share(item.value / total)])));
+    if (selected >= 0 && groups[selected]) r.append(el('p', `${groups[selected].label}: ${money(groups[selected].value)} this month`, 'chart-note'));
+  }
+  const actions = el('div', undefined, 'chart-actions'); actions.append(button('Add expense', addTransaction, 'primary'), sourceLink('Open finance summary', '10-finance-summary')); r.append(actions);
+} });

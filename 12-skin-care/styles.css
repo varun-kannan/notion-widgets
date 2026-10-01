@@ -1,0 +1,1 @@
+.tabs{display:flex;gap:8px;margin:16px 0}.tabs button{flex:1}.skin-step{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}.step-number{font:1.4em Georgia,serif;color:var(--accent)}.content>button{margin:14px 8px 0 0}.notes{white-space:pre-wrap;background:var(--surface);padding:16px;border-radius:12px}

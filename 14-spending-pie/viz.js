@@ -1,0 +1,25 @@
+import { read, localDay, dayDate, shiftDay, dialog, field, submit, uid, save, el } from './core.js';
+import { validTransactions, validHabits, validEvents, validSkin, totals } from './logic.js';
+
+const ns = 'http://www.w3.org/2000/svg';
+export function svg(tag, attrs = {}, value) { const n = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v)); if (value !== undefined) n.textContent = value; return n; }
+export function chart(title, width = 600, height = 260) { const n = svg('svg', { viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': title, preserveAspectRatio: 'xMidYMid meet' }); n.append(svg('title', {}, title)); return n; }
+export function monthRange(count, last = localDay().slice(0, 7)) { const d = dayDate(last + '-01'); d.setMonth(d.getMonth() - count + 1); return Array.from({ length: count }, () => { const m = localDay(d).slice(0, 7); d.setMonth(d.getMonth() + 1); return m; }); }
+export function monthLabel(month) { return new Intl.DateTimeFormat(undefined, { month: 'short', year: '2-digit' }).format(dayDate(month + '-01')); }
+export function transactions() { const a = read('transactions', []); return validTransactions(a) ? a : []; }
+export function allHabits() { const a = read('habits', []); return validHabits(a) ? a : []; }
+export function allEvents() { const a = read('events', []); return validEvents(a) ? a : []; }
+export function skinRecords() { const a = read('skin', {}); return validSkin(a) ? a : {}; }
+export function currency() { const c = read('config:finance:default', {}); const code = typeof c?.currency === 'string' ? c.currency : 'INR'; try { new Intl.NumberFormat(undefined, { style: 'currency', currency: code }); return code; } catch { return 'INR'; } }
+export function money(value, compact = false) { return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency(), notation: compact ? 'compact' : 'standard', maximumFractionDigits: compact ? 1 : 2 }).format(value); }
+export function moneyRows(records, months) { return months.map(month => ({ month, ...totals(records, month) })); }
+export function slices(records, month, limit = 6) {
+  const map = new Map(); for (const row of records) if (row.type === 'expense' && row.date.slice(0, 7) === month) map.set(row.category || 'Other', (map.get(row.category || 'Other') || 0) + row.amount);
+  const sorted = [...map].sort((a, b) => b[1] - a[1]); const visible = sorted.slice(0, limit).map(([label, value]) => ({ label, value }));
+  const remainder = sorted.slice(limit).reduce((sum, [, amount]) => sum + amount, 0); if (remainder) visible.push({ label: 'Other categories', value: remainder }); return visible;
+}
+export function habitRate(habit, end, days) { const completed = new Set(habit.days); let n = 0; for (let i = 0; i < days; i++) if (completed.has(shiftDay(end, -i))) n++; return { completed: n, total: days, percent: Math.round(n / days * 100) }; }
+export function heatCells(habits, end, weeks) { const first = shiftDay(end, -(weeks * 7 - 1)); const all = habits.map(h => new Set(h.days)); return Array.from({ length: weeks * 7 }, (_, i) => { const date = shiftDay(first, i); const complete = all.reduce((n, s) => n + Number(s.has(date)), 0); return { date, complete, total: habits.length, percent: habits.length ? complete / habits.length : 0 }; }); }
+export function dataTable(headers, rows) { const details = el('details', undefined, 'chart-data'); details.append(el('summary', 'View data table')); const scroll = el('div', undefined, 'table-scroll'); const table = el('table'); const head = el('thead'), tr = el('tr'); headers.forEach(h => tr.append(el('th', h))); head.append(tr); table.append(head); const body = el('tbody'); rows.forEach(row => { const line = el('tr'); row.forEach(value => line.append(el('td', String(value)))); body.append(line); }); table.append(body); scroll.append(table); details.append(scroll); return details; }
+export function sourceLink(label, folder) { const a = el('a', label + ' \u2197', 'source-link'); a.href = '../' + folder + '/'; a.target = '_blank'; a.rel = 'noopener noreferrer'; return a; }
+export function addTransaction() { dialog('Add transaction', (form, close) => { const name = field('Description', '', 'text', { required: true, maxlength: 120 }); const amount = field('Amount', '', 'number', { min: 0.01, max: 1e12, step: 'any', required: true }); const type = field('Type', 'expense', 'select', { options: ['expense', 'income'] }); const date = field('Date', localDay(), 'date', { required: true }); const category = field('Category', 'Other', 'text', { maxlength: 50 }); form.append(name, amount, type, date, category); submit(form, 'Save transaction', () => { const item = { id: uid(), label: name.value().trim(), amount: Number(amount.value()), type: type.value(), date: date.value(), category: category.value().trim() || 'Other' }; if (!validTransactions([item])) throw Error('Enter a description, valid date, and positive amount.'); const all = transactions(); all.push(item); save('transactions', all); close(); }); }); }
