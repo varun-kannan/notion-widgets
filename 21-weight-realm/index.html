@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<title>Weight Realm</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./styles.css">
+<script type="module" src="./script.js"></script>
+</head>
+<body>
+<main class="shell">
+  <header class="top"><div><p class="eyebrow">NOTION WEIGHT TRACKER / SYSTEM VIEW</p><h1>Weight Realm</h1></div><div class="actions"><span id="sync-state" role="status">Locked</span><button id="refresh" type="button" hidden>Refresh</button><button id="appearance" type="button">Appearance</button></div></header>
+  <section class="scene" id="scene" aria-label="Animated anime-inspired weight tracker scene">
+    <div class="scene-grid" aria-hidden="true"></div><div class="energy energy-left" aria-hidden="true"></div><div class="energy energy-right" aria-hidden="true"></div>
+    <img class="character hunter" src="./assets/shadow-hunter.png" alt="" aria-hidden="true">
+    <img class="character sorcerer" src="./assets/infinity-sorcerer.png" alt="" aria-hidden="true">
+    <div class="scene-center"><p class="system-tag">SYSTEM ONLINE</p><div class="portal" aria-hidden="true"><span class="portal-ring ring-one"></span><span class="portal-ring ring-two"></span><span class="portal-core"></span></div><p class="rank" id="rank">UNRANKED</p><p class="scene-line" id="scene-line">Each entry builds your story.</p><div class="xp-track"><span id="xp-fill"></span></div><small id="xp-label">0 logging XP</small></div>
+  </section>
+  <section id="gate" class="gate"><h2>Enter your private view</h2><p>Use the same access key as the Notion finance widget. Your tracker stays in Notion; this view only reads it.</p><form id="key-form"><label for="view-key">Access key</label><div class="key-row"><input id="view-key" type="password" autocomplete="off" required><button type="submit">Open tracker</button></div></form><p id="gate-error" role="alert"></p></section>
+  <section id="dashboard" hidden>
+    <div class="stat-grid"><article class="stat"><span>Weekly baseline</span><strong id="baseline">--</strong><small>From Weekly Tracker</small></article><article class="stat"><span>Latest weigh-in</span><strong id="latest">--</strong><small id="latest-date">No daily entry yet</small></article><article class="stat"><span>Change since baseline</span><strong id="change">--</strong><small>Shown only after a valid weigh-in</small></article><article class="stat"><span>Entries logged</span><strong id="entries">0</strong><small>Consistency, not speed</small></article></div>
+    <div class="panels"><section class="panel trend-panel"><div class="panel-head"><div><p class="eyebrow">THE RECORD</p><h2>Weight over time</h2></div><span>kg</span></div><div id="weight-chart" class="chart" role="img" aria-label="Weight trend"></div></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">TODAY'S LOG</p><h2>Fuel and recovery</h2></div></div><div id="nutrition" class="nutrition"></div></section></div>
+    <div class="bottom"><p id="data-note"></p><a href="https://app.notion.com/p/1b840a444c3580daa2f9f6982ec2f0cb" target="_blank" rel="noopener noreferrer">Add or edit records in Notion ↗</a></div>
+  </section>
+</main>
+<dialog id="color-dialog"><form method="dialog"><div class="dialog-head"><h2>Appearance</h2><button type="submit">Close</button></div><p>Set any colors for the scene and cards.</p><div class="color-list"><label>Background <input id="background-color" type="color"></label><label>Surface <input id="surface-color" type="color"></label><label>Text <input id="text-color" type="color"></label><label>Muted text <input id="muted-color" type="color"></label><label>Border <input id="border-color" type="color"></label><label>Violet energy <input id="violet-color" type="color"></label><label>Blue energy <input id="blue-color" type="color"></label></div><button id="lock" type="button">Lock this session</button></form></dialog>
+</body>
+</html>

@@ -6,10 +6,15 @@ import path from 'node:path';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const folders = (await readdir(root)).filter(v => /^\d{2}-/.test(v));
-test('exactly nineteen independent widget folders exist', async () => {
-  assert.equal(folders.length, 19);
+const localFolders = folders.filter(folder => !['20-notion-finance', '21-weight-realm'].includes(folder));
+test('nineteen local widgets and two connected widgets exist', async () => {
+  assert.equal(localFolders.length, 19);
+  assert.equal(folders.length, 21);
   for (const folder of folders) {
-    for (const file of ['index.html', 'script.js', 'styles.css', 'core.js', 'theme.css', 'README.md']) await access(path.join(root, folder, file));
+    for (const file of ['index.html', 'script.js', 'styles.css']) await access(path.join(root, folder, file));
+  }
+  for (const folder of localFolders) {
+    for (const file of ['core.js', 'theme.css', 'README.md']) await access(path.join(root, folder, file));
   }
 });
 test('local imports resolve inside each standalone folder', async () => {
@@ -27,7 +32,7 @@ test('local imports resolve inside each standalone folder', async () => {
 test('shared runtime and theme copies match', async () => {
   for (const file of ['core.js', 'theme.css']) {
     const expected = await readFile(path.join(root, folders[0], file), 'utf8');
-    for (const folder of folders) assert.equal(await readFile(path.join(root, folder, file), 'utf8'), expected);
+    for (const folder of localFolders) assert.equal(await readFile(path.join(root, folder, file), 'utf8'), expected);
   }
 });
 test('quote image is bundled and no records are shipped', async () => {

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<title>Notion finance</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./styles.css">
+<script type="module" src="./script.js"></script>
+</head>
+<body>
+<main class="widget">
+  <header class="top">
+    <div><p class="kicker">CONNECTED TO YOUR NOTION FINANCES</p><h1>Money, in perspective.</h1></div>
+    <div class="top-actions"><span id="sync-state" role="status">Locked</span><button id="refresh" type="button" hidden>Refresh</button><button id="settings" type="button">Appearance</button></div>
+  </header>
+  <section id="gate" class="gate">
+    <div class="lock-icon" aria-hidden="true">&#9672;</div>
+    <h2>Your private finance view</h2>
+    <p>Enter your widget access key to read your existing Notion records. The key stays in this browser session.</p>
+    <form id="key-form"><label for="view-key">Access key</label><div class="key-row"><input id="view-key" type="password" autocomplete="off" required><button type="submit">Open view</button></div></form>
+    <p id="gate-error" class="error" role="alert"></p>
+  </section>
+  <section id="dashboard" hidden>
+    <div class="controls"><div class="segmented" role="group" aria-label="Period"><button type="button" data-period="day">Day</button><button type="button" data-period="month" aria-pressed="true">Month</button><button type="button" data-period="year">Year</button></div><label>Choose date <input id="period-date" type="date"></label></div>
+    <div class="hero-grid"><div class="hero"><span class="label">Balance after spending</span><strong id="balance">--</strong><span id="period-label" class="muted"></span><div class="glow" aria-hidden="true"></div></div><div class="mini-stat"><span class="label">Income</span><strong id="income">--</strong><span class="positive">Money in</span></div><div class="mini-stat"><span class="label">Spent</span><strong id="spent">--</strong><span class="warm">Money out</span></div><div class="mini-stat"><span class="label">Credit card entries</span><strong id="credit">--</strong><span class="muted">Shown separately to avoid double counting</span></div></div>
+    <div class="visual-grid"><section class="panel"><div class="panel-head"><div><span class="eyebrow">CASH FLOW</span><h2>Income and spending</h2></div><span id="trend-caption" class="muted"></span></div><div id="trend" class="trend" role="img" aria-label="Income and spending chart"></div></section><section class="panel"><div class="panel-head"><div><span class="eyebrow">THE BREAKDOWN</span><h2>Where it went</h2></div></div><div class="donut-wrap"><div id="donut" class="donut" role="img" aria-label="Spending by category"><div class="donut-hole"><small>Total spent</small><strong id="donut-total">--</strong></div></div><div id="legend" class="legend"></div></div></section></div>
+    <div class="lower-grid"><section class="panel"><div class="panel-head"><div><span class="eyebrow">SPENDING PLAN</span><h2>Budget progress</h2></div></div><div id="budgets" class="budget-list"></div></section><section class="panel"><div class="panel-head"><div><span class="eyebrow">THE DETAILS</span><h2>Recent activity</h2></div><a href="https://app.notion.com/p/06234a34dd024bb6af1e53051b2d5cd8" target="_blank" rel="noopener noreferrer">Edit in Notion ↗</a></div><div id="activity" class="activity"></div></section></div>
+    <p id="data-note" class="footnote"></p>
+  </section>
+</main>
+<dialog id="appearance"><form method="dialog"><div class="dialog-head"><h2>Appearance</h2><button type="submit" aria-label="Close">Close</button></div><p>Choose colors to match your Notion background.</p><div class="colors"><label>Background <input id="background-color" type="color"></label><label>Surface <input id="surface-color" type="color"></label><label>Accent <input id="accent-color" type="color"></label><label>Text <input id="text-color" type="color"></label><label>Muted text <input id="muted-color" type="color"></label><label>Border <input id="line-color" type="color"></label><label>Spending <input id="warm-color" type="color"></label><label>Category 1 <input id="chart-1-color" type="color"></label><label>Category 2 <input id="chart-2-color" type="color"></label><label>Category 3 <input id="chart-3-color" type="color"></label><label>Category 4 <input id="chart-4-color" type="color"></label></div><button id="lock" type="button">Lock this session</button></form></dialog>
+</body>
+</html>

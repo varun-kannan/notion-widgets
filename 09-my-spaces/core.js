@@ -43,15 +43,18 @@ export function dateLabel(s, options = {}) { return new Intl.DateTimeFormat(unde
 export function empty(root, title, detail) { const n = el('div', undefined, 'empty'); n.append(el('h3', title), el('p', detail, 'muted')); root.append(n); }
 export function metric(root, value, label) { const n = el('div', undefined, 'metric'); n.append(el('strong', value), el('span', label, 'muted')); root.append(n); }
 export function progress(value, label) { const n = el('div', undefined, 'progress'); n.role = 'progressbar'; n.setAttribute('aria-label', label); n.setAttribute('aria-valuenow', clamp(value, 0, 100)); n.setAttribute('aria-valuemin', '0'); n.setAttribute('aria-valuemax', '100'); const bar = el('span'); bar.style.width = clamp(value, 0, 100) + '%'; n.append(bar); return n; }
-const baseTheme = { background: '#181b1a', surface: '#252b28', primary: '#b7cfb5', accent: '#e6c58c', text: '#f2f4ed', muted: '#a6b0a8', border: '#3b433e', gradient: '#39483e', gradientOn: false, opacity: 100, radius: 22, shadow: 18, fontSize: 16, font: 'system', density: 'comfortable' };
+const legacyTheme = { background: '#181b1a', surface: '#252b28', primary: '#b7cfb5', accent: '#e6c58c', text: '#f2f4ed', muted: '#a6b0a8', border: '#3b433e', gradient: '#39483e', gradientOn: false, opacity: 100, radius: 22, shadow: 18, fontSize: 16, font: 'system', density: 'comfortable' };
+const baseTheme = { ...legacyTheme, background: '#191919', surface: '#252525', muted: '#b0b0b0', border: '#2b2b2b', gradient: '#242424', radius: 18, shadow: 0 };
 const presets = {
-  Forest: baseTheme,
+  'Notion Dark': baseTheme,
+  Forest: legacyTheme,
   Paper: { ...baseTheme, background: '#f4f1eb', surface: '#ffffff', primary: '#335644', accent: '#9b641f', text: '#202b25', muted: '#617068', border: '#d7ddd4', gradient: '#e7eee0' },
   Ocean: { ...baseTheme, background: '#101d30', surface: '#1b2d46', primary: '#79c9df', accent: '#d9aeef', text: '#edf7ff', muted: '#a0b4c9', border: '#354b65', gradient: '#244d62' },
   Plum: { ...baseTheme, background: '#241b2c', surface: '#34273f', primary: '#d6b4ef', accent: '#f1b4a3', text: '#fff0fc', muted: '#c1adc5', border: '#56415f', gradient: '#5a354f' },
 };
 export function themeValue(obj) {
   const t = { ...baseTheme }; if (!obj || typeof obj !== 'object') return t;
+  if (Object.keys(legacyTheme).every(key => obj[key] === legacyTheme[key])) return t;
   for (const key of ['background', 'surface', 'primary', 'accent', 'text', 'muted', 'border', 'gradient']) if (/^#[0-9a-f]{6}$/i.test(obj[key])) t[key] = obj[key];
   for (const [k, min, max] of [['opacity', 0, 100], ['radius', 0, 40], ['shadow', 0, 40], ['fontSize', 14, 24]]) if (Number.isFinite(Number(obj[k]))) t[k] = clamp(obj[k], min, max);
   t.gradientOn = obj.gradientOn === true; t.font = ['system', 'serif', 'mono'].includes(obj.font) ? obj.font : 'system'; t.density = obj.density === 'compact' ? 'compact' : 'comfortable'; return t;
@@ -90,7 +93,7 @@ export function boot({ id, title, symbol, defaults = {}, configure, render }) {
       f.append(colors);
       const extras = el('div', undefined, 'form-grid'); f.append(extras); const opts = {};
       for (const [k, label, type, options] of [['gradientOn', 'Use gradient', 'checkbox', {}], ['opacity', 'Background opacity (%)', 'number', { min: 0, max: 100 }], ['radius', 'Corner radius (px)', 'number', { min: 0, max: 40 }], ['shadow', 'Shadow strength', 'number', { min: 0, max: 40 }], ['fontSize', 'Text size (px)', 'number', { min: 14, max: 24 }], ['font', 'Font', 'select', { options: ['system', 'serif', 'mono'] }], ['density', 'Spacing', 'select', { options: ['comfortable', 'compact'] }]]) { opts[k] = field(label, theme[k], type, options); extras.append(opts[k]); }
-      preset.control.onchange = () => { const p = presets[preset.value()]; if (p) { for (const k in controls) { controls[k].value = p[k]; controls[k].previousElementSibling.value = p[k]; } } };
+      preset.control.onchange = () => { const p = presets[preset.value()]; if (p) { for (const k in controls) { controls[k].value = p[k]; controls[k].previousElementSibling.value = p[k]; } for (const [k, option] of Object.entries(opts)) { if (option.control.type === 'checkbox') option.control.checked = p[k]; else option.control.value = p[k]; } } };
       const all = field('Apply these colors to all widgets on this browser', false, 'checkbox'); f.append(all);
       const nextTheme = () => themeValue({ ...Object.fromEntries(Object.entries(controls).map(([k, n]) => [k, n.value])), ...Object.fromEntries(Object.entries(opts).map(([k, n]) => [k, n.value()])) });
       const actions = el('div', undefined, 'actions');
